@@ -52,9 +52,6 @@ class Game
     puts "#{corr_pos} colors are in the right position"
     puts "#{corr_color} other colors are in the code"
   end
-
-
-
 end
 
 class Board
@@ -83,18 +80,30 @@ end
 
 class Codebreaker < Player
   def guess_code
-    puts 'Enter your guess from these colors:'
+    puts 'Enter your guess from these colors (space separated):'
     puts 'Red, Green, Blue, Yellow, Orange, Purple'
-    guess = []
     loop do
-      guess_color = gets.chomp.capitalize
-      if !COLORS.include?(guess_color) || guess.include?(guess_color)
-        puts 'Invalid color/repeated color'
+      guess = gets.chomp.split(' ')
+      guess.map!{ |color| color.capitalize}
+      unless guess.uniq.length == guess.length
+        puts 'No repetitions. Guess again.'
         next
       end
-      guess.push(guess_color)
-      return guess if guess.length == 4
+      unless COLORS.difference(guess).length == 2
+        puts 'Entered an invalid color. Guess again.'
+        next
+      end
+      return guess
     end
+
+    #   guess_color = gets.chomp.capitalize
+    #   if !COLORS.include?(guess_color) || guess.include?(guess_color)
+    #     puts 'Invalid color/repeated color'
+    #     next
+    #   end
+    #   guess.push(guess_color)
+    #   return guess if guess.length == 4
+    # end
   end
   
 end
