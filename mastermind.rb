@@ -22,17 +22,22 @@ class Game
     (0..11).each do |i|
       guess = @human.guess_code
 
+
       if guess_correct?(guess)
         puts 'You won dude!!!'
-        return
+        break
       end
 
       if i == 11
         puts 'Out of guesses, codemaker wins :<'
-        return
+        break
       end
 
-      check_guess(guess)
+      results = check_guess(guess)
+      @board.board[i] = [guess, results]
+      @board.print_board(i)
+
+
 
     end
   end
@@ -44,17 +49,25 @@ class Game
   def check_guess(guess)
     corr_pos = 0
     (0..3).each do |i|
-      if guess[i] == @computer.code[i]
-        corr_pos += 1
-      end
+      corr_pos += 1 if guess[i] == @computer.code[i]
     end
     corr_color = 4 - @computer.code.difference(guess).length - corr_pos
-    puts "#{corr_pos} colors are in the right position"
-    puts "#{corr_color} other colors are in the code"
+    [corr_pos, corr_color]
   end
 end
 
 class Board
+  def initialize
+    @board = Array.new(12)
+  end
+  attr_accessor :board
+
+  def print_board(round)
+    (0..round).each do |x|
+      puts board[x][0].join(' | ') + " | Right position: #{board[x][1][0]}, Right color: #{board[x][1][1]}"
+    end
+    puts
+  end
 end
 
 
@@ -80,30 +93,17 @@ end
 
 class Codebreaker < Player
   def guess_code
-    puts 'Enter your guess from these colors (space separated):'
-    puts 'Red, Green, Blue, Yellow, Orange, Purple'
+    puts 'Enter your guess from these colors (space separated): Red, Green, Blue, Yellow, Orange, Purple'
     loop do
       guess = gets.chomp.split(' ')
-      guess.map!{ |color| color.capitalize}
-      unless guess.uniq.length == guess.length
-        puts 'No repetitions. Guess again.'
+      guess.map!(&:capitalize)
+      unless guess.uniq.length == guess.length || COLORS.difference(guess).length == 2
+        puts 'Invalid color or repetitions. Guess again.'
         next
       end
-      unless COLORS.difference(guess).length == 2
-        puts 'Entered an invalid color. Guess again.'
-        next
-      end
+      puts
       return guess
     end
-
-    #   guess_color = gets.chomp.capitalize
-    #   if !COLORS.include?(guess_color) || guess.include?(guess_color)
-    #     puts 'Invalid color/repeated color'
-    #     next
-    #   end
-    #   guess.push(guess_color)
-    #   return guess if guess.length == 4
-    # end
   end
   
 end
