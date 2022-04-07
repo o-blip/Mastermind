@@ -1,4 +1,5 @@
 require_relative "player.rb"
+require_relative 'board'
 
 class Codebreaker < Player
   def guess_code
@@ -13,5 +14,14 @@ class Codebreaker < Player
       puts
       return guess
     end
+  end
+end
+
+class Botbreaker < Player
+  def guess_code(past_guesses)
+    guess = COLORS.sample(4)
+    guess.map!(&:downcase)
+    guess_code if past_guesses.any?(guess)
+    guess
   end
 end
