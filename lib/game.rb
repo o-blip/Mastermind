@@ -1,82 +1,77 @@
 require_relative "board.rb"
-require_relative "codebreaker.rb"
-require_relative "codemaker.rb"
+require_relative "human_player.rb"
+require_relative "computer_player.rb"
 
 class Game
   def initialize
-    @human = nil
-    @computer = nil
+    @mode = choose_role()
+    @human = Human.new
+    @computer = Computer.new
     @board = Board.new
+    @code = nil
   end
 
   def play
-    ans =choose_role()
-    if ans == 'y'
-      # player is codebreaker
-
+    if @mode
+      round_human
     else
-      # player is codemaker
-      code = @human.create_code
-      (0..11).each do |i|
-        p @board.past_guesses
-        guess = @computer.guess_code(@board.past_guesses)
-        @board.past_guesses.push(guess)
-        if guess_correct?(guess, code)
-          puts 'You won dude!!!'
-          break
-        end
-
-        if i == 11
-          puts 'Out of guesses, codemaker wins :<'
-          break
-        end
-
-        results = check_guess(guess,code)
-        @board.board[i] = [guess, results]
-        @board.print_board(i)
-      end
-    # (0..11).each do |i|
-    #   guess = @human.guess_code
-    #   if guess_correct?(guess)
-    #     puts 'You won dude!!!'
-    #     break
-    #   end
-
-    #   if i == 11
-    #     puts 'Out of guesses, codemaker wins :<'
-    #     break
-    #   end
-
-    #   results = check_guess(guess)
-    #   @board.board[i] = [guess, results]
-    #   @board.print_board(i)
+      round_pc
     end
-  end
-
-  def guess_correct?(guess,code)
-    guess == code
-  end
-
-  def check_guess(guess,code)
-    corr_pos = 0
-    (0..3).each do |i|
-      corr_pos += 1 if guess[i] == code[i]
-    end
-    corr_color = 4 - code.difference(guess).length - corr_pos
-    [corr_pos, corr_color]
+    play_again
   end
 
   def choose_role
     puts 'Do you want to be the codebreaker? (y/n)'
-    case gets.chomp.downcase
-    when 'y'
-      @human = Codebreaker.new
-      @computer = Codemaker.new
-      'y'
-    else
-      @human = Humanmaker.new
-      @computer = Botbreaker.new
-      'n'
+    gets.chomp.downcase == 'y'
+  end
+
+  def round_pc
+    @code = @human.create_code
+    guess = @computer.guess_code
+    (0..11).each do |round|
+      if correct?(guess)
+        @board.print_board
+        return
+      end
+      check(guess, round)
+      break if round == 11
+
+      guess = @computer.guess_code
     end
+    @board.print_board(11)
+    puts "Code was #{@code}"
+    puts 'Codemaker wins :<'
+  end
+
+  def round_human
+    @code = @computer.create_code
+    guess = @human.guess_code
+    (0..10).each do |round|
+      return if correct?(guess)
+
+      check(guess, round)
+      @board.print_board(round)
+      guess = @human.guess_code
+    end
+    puts "Code was #{@code}"
+    puts 'Codemaker wins :<'
+  end
+
+  def correct?(guess)
+    puts 'You win!' if guess == @code
+    guess == @code
+  end
+
+  def check(guess, round)
+    corr_pos = 0
+    (0..3).each { |i| corr_pos += 1 if guess[i] == @code[i] }
+    corr_color = 4 - @code.difference(guess).length - corr_pos
+    results = [corr_pos, corr_color]
+    @board.board[round] = [guess, results]
+  end
+
+  def play_again
+    puts 'Want to play again? (y/n)'
+    Game.new.play if gets.chomp.downcase == 'y'
   end
 end

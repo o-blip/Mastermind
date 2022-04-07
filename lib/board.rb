@@ -1,7 +1,6 @@
 class Board
   def initialize
     @board = Array.new(12)
-    @past_guesses = []
   end
   attr_accessor :board, :past_guesses
 
